@@ -8,7 +8,7 @@ $.typeahead({
     backdrop: {
         "background-color": "#fff"
     },
-    href: "bookdetails.html?id={{Id}}",
+    href: "https://europe-west1-bookxpress-295807.cloudfunctions.net/bx/book?ISBN={{_source.ISBN}}",
     template: function (query, item) {
         return '<div class="result">' +
             '<div class="row">' +
@@ -34,21 +34,29 @@ $.typeahead({
     source: {
         book: {
             display: "_source.Publication",
-            href: "book-details.html?id={{_id}}&ISBN={{_source.ISBN}}",
+            href: "https://europe-west1-bookxpress-295807.cloudfunctions.net/bx/book?ISBN={{_source.ISBN}}",
             ajax: function (query) {
                 let data = JSON.stringify({
+                    // "query": {
+                    //     // "prefix" : { "Publication" : query }
+                    //     "prefix": {
+                    //         "Publication": {
+                    //             "value": query,
+                    //             "case_insensitive": true
+                    //         }
+                    //     }
+                    // },
+                    // "collapse": {
+                    //     "field": "ISBN"
+                    // }
                     "query": {
-                        // "prefix" : { "Publication" : query }
-                        "prefix": {
+                        "match": {
                             "Publication": {
-                                "value": query,
-                                "case_insensitive": true
+                                "query": query
                             }
                         }
-                    },
-                    "collapse": {
-                        "field": "ISBN"
                     }
+                    ,"collapse":{"field":"ISBN"}
                 });
                 return {
                     type: "POST",
