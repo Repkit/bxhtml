@@ -1,0 +1,13 @@
+# Ignore everything
+*
+
+# But not these files...
+!.gitignore
+!/assets
+!/assets/*
+!/assets/css
+!/assets/css/*
+!/assets/js
+!/assets/js/*
+!/assets/img
+!/assets/img/*
