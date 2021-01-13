@@ -59,6 +59,7 @@ function Sell() {
         var univerisityOption = new Option(university.text, university.text, true, true);
         $('#book_university').append(univerisityOption).trigger('change');
         $('#book_desc').attr("disabled", true);
+        $('#book_isbn').attr("disabled", true);
 
         document.getElementById('book_isbn').style.borderColor='#000';
         uploadBookImages.update({tags: [document.getElementById('book_isbn').value, 'deleted']});
