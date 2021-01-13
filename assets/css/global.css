@@ -2718,6 +2718,11 @@ header .fa-bars {
     margin:auto;
 }
 
+.disclaimer{
+    font-size: 16px;
+    margin-top: -15px;
+}
+
 
 @media only screen and (min-width: 768px) {
     .add-address-btn {

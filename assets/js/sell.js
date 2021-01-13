@@ -59,6 +59,10 @@ function Sell() {
         var univerisityOption = new Option(university.text, university.text, true, true);
         $('#book_university').append(univerisityOption).trigger('change');
         $('#book_desc').attr("disabled", true);
+
+        document.getElementById('book_isbn').style.borderColor='#000';
+        uploadBookImages.update({tags: [document.getElementById('book_isbn').value, 'deleted']});
+        uploadBookImages.open();
     }
     this.clearForm = function(){
         let self = this;
@@ -89,6 +93,13 @@ $( "#priceAmount" ).keyup(function(event) {
     container.html('You will receive: <br><span style="font-size:30px;display:block;font-weight:600;margin-top:0px;">€' + yourprice + '</span>');
 });
 
+
+let validateisbn = ( value )=>{
+    if(10 == value.length || 13 == value.length){
+        return true;
+    }
+    return false;
+};
 // cloudinary.applyUploadWidget(document.getElementById('cloudinaryUpload'),
 let uploadBookImages = cloudinary.createUploadWidget(
     {
@@ -96,15 +107,53 @@ let uploadBookImages = cloudinary.createUploadWidget(
         uploadPreset: "y16pnnfu",
         clientAllowedFormats: ["png", "jpeg"],
         buttonCaption: "Upload real photos of your book",
-        inlineContainer: "#cloudinaryUploadContainer"
-    }, (error, result) => { });
-uploadBookImages.open();
+        inlineContainer: "#cloudinaryUploadContainer",
+        // form: "#bookform",
+        thumbnails:"#uploadedimages",
+        thumbnailTransformation: [{ width: 100, height: 100, crop: 'fit' }],
+        // preBatch: (cb, data) => {
+        //     console.log(data);
+        //     if (true) {
+        //         cb({cancel: true});
+        //     } else {
+        //         cb();
+        //     }
+        // }
+    }, (error, result) => {
+        if (!error && result && result.event === "success") {
+            console.log('Done! Here is the image info: ', result.info);
+            var x = document.createElement("INPUT");
+            x.setAttribute("type", "hidden");
+            x.setAttribute("name", "pids[]");
+            x.setAttribute("value", result.info.public_id);
+            document.forms[0].appendChild(x);
+            var y = document.createElement("INPUT");
+            y.setAttribute("type", "hidden");
+            y.setAttribute("name", "image[]");
+            y.setAttribute("value", result.info.secure_url);
+            document.forms[0].appendChild(y);
+        }
+    });
+
+document.getElementById("cloudinaryUploadContainer").style['min-height'] = null;
+document.getElementById("book_isbn").addEventListener("blur", function(){
+    console.log('lost focus');
+    if (validateisbn(this.value)){
+        this.style.borderColor='#000';
+        uploadBookImages.update({tags: [this.value, 'deleted']});
+        uploadBookImages.open();
+    } else {
+        this.style.borderColor='#ff0000';
+        uploadBookImages.update({tags: null});
+        uploadBookImages.close({quiet: true});
+    }
+}, false);
 
 // Wait for the DOM to be ready
 $(function() {
     // Initialize form validation on the registration form.
     // It has the name attribute "registration"
-    $("form[name='list']").validate({
+    $("#sellBook").validate({
         // Specify validation rules
         rules: {
             // The key name on the left side is the name attribute
