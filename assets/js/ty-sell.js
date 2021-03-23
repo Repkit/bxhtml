@@ -30,7 +30,13 @@ typeof $.typeahead === 'function' && $.typeahead({
             '</div>' +
             '</div>'
     },
-    emptyTemplate: "no result for {{query}}",
+    // emptyTemplate: "no result for {{query}}",
+    emptyTemplate: function (query) {
+        if (query.length > 0) {
+            sell.clearForm();
+            return 'No results found for "' + query + '"';
+        }
+    },
     source: {
         book: {
             display: "_source.Publication",
@@ -59,7 +65,7 @@ typeof $.typeahead === 'function' && $.typeahead({
                 });
                 return {
                     type: "POST",
-                    url: "http://34.91.175.68:9200/book_collection/_search",
+                    url: "https://es.asahiconsultancy.net/book_collection/_search",
                     path: "hits.hits",
                     contentType: "application/json;charset=UTF-8",
                     processData: false,
@@ -75,7 +81,7 @@ typeof $.typeahead === 'function' && $.typeahead({
     callback: {
         onClickAfter: function (node, a, item, event){
             event.preventDefault();
-            console.log(item);
+            // console.log(item);
             sell.populateForm(item);
             return;
         },
