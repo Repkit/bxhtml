@@ -173,6 +173,7 @@ function initAutocomplete() {
             '</label>';
 
         $('#selectedAddresses').append(el);
+        $('#allowInPersonDelivery').prop( "checked", true );
 
     }, false);
 }

@@ -60,7 +60,7 @@ $.typeahead({
                 });
                 return {
                     type: "POST",
-                    url: "http://34.91.175.68:9200/book_collection/_search",
+                    url: "https://es.asahiconsultancy.net/book_collection/_search",
                     path: "hits.hits",
                     contentType: "application/json;charset=UTF-8",
                     processData: false,

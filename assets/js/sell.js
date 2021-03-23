@@ -58,8 +58,10 @@ function Sell() {
         };
         var univerisityOption = new Option(university.text, university.text, true, true);
         $('#book_university').append(univerisityOption).trigger('change');
-        $('#book_desc').attr("disabled", true);
-        $('#book_isbn').attr("disabled", true);
+        $('#book_desc').attr("readOnly", true);
+        $('#book_isbn').attr("readOnly", true);
+        $("#book_noisbn").attr("disabled", true);
+        $("#ajaxSearchty").attr("readOnly", true);
 
         document.getElementById('book_isbn').style.borderColor='#000';
         uploadBookImages.update({tags: [document.getElementById('book_isbn').value, 'deleted']});
@@ -71,6 +73,27 @@ function Sell() {
             document.getElementById(key).value="";
         }
         document.getElementById("book_preview").src = "";
+        document.getElementById("book_university").value="";
+        $('#book_isbn').attr("readOnly", false);
+        $("#book_noisbn").attr("disabled", false);
+        $("#ajaxSearchty").attr("readOnly", false);
+        $('#book_desc').attr("readOnly", false);
+        uploadBookImages.update({tags: null});
+        uploadBookImages.close({quiet: true});
+
+    }
+    this.getPriceFee = function(price){
+        let yourprice = 0;
+        price = parseFloat(price);
+        if(price < 25){
+            yourprice = price - 0.5;
+        }else if (price >= 25 && price < 65){
+            yourprice = price - 1;
+        } else{
+            yourprice = price - ((5 / 100) * price).toFixed(3);
+        }
+
+        return yourprice;
     }
 };
 
@@ -84,16 +107,17 @@ $( "#priceAmount" ).keyup(function(event) {
         return;
     }
 
-    if(price < 25){
-        yourprice = price - 0.5;
-    }else if (price >= 25 && price < 65){
-        yourprice = price - 1;
-    } else{
-        yourprice = price - ((5 / 100) * price).toFixed(3);
+    yourprice = sell.getPriceFee(price);
+
+    if (document.getElementById('promotebook').checked) {
+        yourprice = yourprice - 1;
     }
     container.html('You will receive: <br><span style="font-size:30px;display:block;font-weight:600;margin-top:0px;">€' + yourprice + '</span>');
 });
 
+$("#promotebook").change(function(e){
+    $("#priceAmount").trigger("keyup");
+});
 
 let validateisbn = ( value )=>{
     if(10 == value.length || 13 == value.length){
@@ -101,6 +125,7 @@ let validateisbn = ( value )=>{
     }
     return false;
 };
+
 // cloudinary.applyUploadWidget(document.getElementById('cloudinaryUpload'),
 let uploadBookImages = cloudinary.createUploadWidget(
     {
@@ -111,7 +136,7 @@ let uploadBookImages = cloudinary.createUploadWidget(
         inlineContainer: "#cloudinaryUploadContainer",
         // form: "#bookform",
         thumbnails:"#uploadedimages",
-        thumbnailTransformation: [{ width: 100, height: 100, crop: 'fit' }],
+        // thumbnailTransformation: [{ width: 100, height: 100, crop: 'fit' }],
         // preBatch: (cb, data) => {
         //     console.log(data);
         //     if (true) {
@@ -123,32 +148,62 @@ let uploadBookImages = cloudinary.createUploadWidget(
     }, (error, result) => {
         if (!error && result && result.event === "success") {
             console.log('Done! Here is the image info: ', result.info);
+            var form = document.getElementById("sellBook");
             var x = document.createElement("INPUT");
             x.setAttribute("type", "hidden");
             x.setAttribute("name", "pids[]");
             x.setAttribute("value", result.info.public_id);
-            document.forms[0].appendChild(x);
+            form.appendChild(x);
             var y = document.createElement("INPUT");
             y.setAttribute("type", "hidden");
-            y.setAttribute("name", "image[]");
+            y.setAttribute("name", "Gallery[]");
             y.setAttribute("value", result.info.secure_url);
-            document.forms[0].appendChild(y);
+            form.appendChild(y);
         }
     });
 
 document.getElementById("cloudinaryUploadContainer").style['min-height'] = null;
-document.getElementById("book_isbn").addEventListener("blur", function(){
-    console.log('lost focus');
-    if (validateisbn(this.value)){
-        this.style.borderColor='#000';
-        uploadBookImages.update({tags: [this.value, 'deleted']});
-        uploadBookImages.open();
+document.getElementById("ajaxSearchty").addEventListener("blur", function(){
+    if (this.value.length < 1){
+        return;
+    }
+    let tag = tb.md5(unescape(encodeURIComponent(this.value)));
+    let uid = tb.getCookie('uid');
+    let uname = tb.getCookie('uname');
+    if(!uid){
+        alert('please reload the page your session had expired!');
+        location.reload();
+        return;
+    }
+    uploadBookImages.update({tags: [tag, tag+uid, uname, uid, 'deleted']});
+    uploadBookImages.open();
+    this.readOnly = true;
+},false);
+document.getElementById("shipmentPrice").addEventListener("blur", function(){
+    // console.log('lost focus');
+    if (!this.checked){
+        if(parseInt(this.value) > 0){
+            document.getElementById("allowShipping").click();
+        }
     } else {
-        this.style.borderColor='#ff0000';
-        uploadBookImages.update({tags: null});
-        uploadBookImages.close({quiet: true});
+        if(parseInt(this.value) == 0){
+            document.getElementById("allowShipping").checked = false;
+        }
     }
 }, false);
+
+// document.getElementById("book_isbn").addEventListener("blur", function(){
+//     // console.log('lost focus');
+//     if (validateisbn(this.value)){
+//         this.style.borderColor='#000';
+//         uploadBookImages.update({tags: [this.value, 'deleted']});
+//         uploadBookImages.open();
+//     } else {
+//         this.style.borderColor='#ff0000';
+//         uploadBookImages.update({tags: null});
+//         uploadBookImages.close({quiet: true});
+//     }
+// }, false);
 
 // Wait for the DOM to be ready
 $(function() {
@@ -189,6 +244,21 @@ $(function() {
         // Make sure the form is submitted to the destination defined
         // in the "action" attribute of the form when valid
         submitHandler: function(form) {
+            if (!window['_bxloggedin_']){
+                $('#signIn').modal('show');
+                return;
+            }
+            let token = tb.getCookie('token');
+            let uid = tb.getCookie('uid');
+            if(!token){
+                alert('token expired');
+                location.reload();
+            }
+            if(!uid){
+                alert('session expired');
+                location.reload();
+            }
+            $("#_csrf").val(uid+'bx'+token);
             form.submit();
         }
     });
