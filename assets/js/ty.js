@@ -8,7 +8,7 @@ $.typeahead({
     backdrop: {
         "background-color": "#fff"
     },
-    href: "http://jb.rpk:8070/book?ISBN={{_source.ISBN}}",
+    href: "https://europe-west1-bookxpress-295807.cloudfunctions.net/bx/book?ISBN={{_source.ISBN}}",
     template: function (query, item) {
         return '<div class="result">' +
             '<div class="row">' +
@@ -34,7 +34,7 @@ $.typeahead({
     source: {
         book: {
             display: "_source.Publication",
-            href: "http://jb.rpk:8070/book?ISBN={{_source.ISBN}}",
+            href: "https://europe-west1-bookxpress-295807.cloudfunctions.net/bx/book?ISBN={{_source.ISBN}}",
             ajax: function (query) {
                 let data = JSON.stringify({
                     // "query": {
